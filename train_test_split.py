@@ -11,9 +11,10 @@ BACKGROUND_IMG_PATH = os.path.join(BASE_DIR, 'task2img', 'backgroundimg')
 PORES_IMG_PATH = os.path.join(BASE_DIR, 'task2img', 'poresimg')
 TRAIN_IMG_PATH = os.path.join(BASE_DIR, 'train')
 TEST_IMG_PATH = os.path.join(BASE_DIR, 'test')
+VALUE_PATH = os.path.join(BASE_DIR, 'value')
 
-background_imgs = os.listdir(BACKGROUND_IMG_PATH)
-pores_imgs = os.listdir(PORES_IMG_PATH)
+background_imgs = os.listdir(BACKGROUND_IMG_PATH)  # image name
+pores_imgs = os.listdir(PORES_IMG_PATH)  # image name
 print ('-----------------------------------------------')
 print ('                DIP Project 2                  ')
 print ('-----------------------------------------------')
@@ -44,14 +45,15 @@ x2 = pores_imgs
 y1 = [0] * len(background_imgs)
 y2 = [1] * len(pores_imgs)
 
-x_train1, x_test1, y_train1, y_test1 = train_test_split(x1, y1, test_size=0.2)
-x_train2, x_test2, y_train2, y_test2 = train_test_split(x2, y2, test_size=0.2)
-x_train = []
+x_train1, x_test1, y_train1, y_test1 = train_test_split(x1, y1, test_size=0.2)  # background image name
+x_train2, x_test2, y_train2, y_test2 = train_test_split(x2, y2, test_size=0.2)  # pores image name
+x_train = []  # image path
 x_test = []
 for img in x_train1:
     x_train.append(os.path.join(BACKGROUND_IMG_PATH, img))
 for img in x_train2:
     x_train.append(os.path.join(PORES_IMG_PATH, img))
+
 for img in x_test1:
     x_test.append(os.path.join(BACKGROUND_IMG_PATH, img))
 for img in x_test2:
@@ -66,13 +68,36 @@ print ('y_test size = %d' % len(y_test))
 print ('----------------end to split data set!----------------')
 print ('\n')
 
+# save y_train and y_test value to file
+print ('----------------writing y_train and y_test value----------------')
+y_train_file = file(os.path.join(VALUE_PATH, 'y_train.npy'), 'wb')
+y_test_file = file(os.path.join(VALUE_PATH, 'y_test.npy'), 'wb')
+np.save(y_train_file, y_train)
+np.save(y_test_file, y_test)
+y_train_file.close()
+y_test_file.close()
+
 # write train images
-# for train_img_name, test_img_name in x_train, x_test:
-#     train_img_path = os.path.join(BACKGROUND_IMG_PATH, train_img_name)
-#     img = cv2.imread(train_img_path)
-#     cv2.imwrite(os.path.join(TRAIN_IMG_PATH, x_train[0]), img)
-# if img is not None:
-#     cv2.imshow('img', img)
-#     cv2.waitKey(0)
-# else:
-#     print ('img is empty')
+print ('----------------writing train images----------------')
+for i in xrange(0, len(x_train)):
+    img = cv2.imread(x_train[i], 0)
+    if img is not None:
+        # print os.path.join(TRAIN_IMG_PATH, str(i)+'.jpg')
+        cv2.imwrite(os.path.join(TRAIN_IMG_PATH, str(i) + '.jpg'), img)
+        print ('%d/%d' % (i + 1, len(x_train)))
+        # cv2.imshow('img', img)
+        # cv2.waitKey(0)
+    else:
+        print ('img is empty')
+# write test images
+print ('----------------writing test images----------------')
+for i in xrange(0, len(x_test)):
+    img = cv2.imread(x_test[i], 0)
+    if img is not None:
+        # print os.path.join(TRAIN_IMG_PATH, str(i)+'.jpg')
+        cv2.imwrite(os.path.join(TEST_IMG_PATH, str(i) + '.jpg'), img)
+        print ('%d/%d' % (i + 1, len(x_test)))
+        # cv2.imshow('img', img)
+        # cv2.waitKey(0)
+    else:
+        print ('img is empty')
