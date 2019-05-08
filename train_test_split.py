@@ -6,6 +6,8 @@ import cv2
 import numpy as np
 from sklearn.model_selection import train_test_split
 
+
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 BACKGROUND_IMG_PATH = os.path.join(BASE_DIR, 'task2img', 'backgroundimg')
 PORES_IMG_PATH = os.path.join(BASE_DIR, 'task2img', 'poresimg')
@@ -21,8 +23,11 @@ print ('-----------------------------------------------')
 print ('background images have %d' % len(background_imgs))
 print ('pores images have %d' % len(pores_imgs))
 print ('\n')
-# split test and train data set by using np.random.permutation
+
+###################################
+### split test and train data set by using np.random.permutation
 print ('----------------start to split data set----------------')
+# 手动分割
 # b_shuffle_indexes = np.random.permutation(len(background_imgs))
 # p_shuffle_indexes = np.random.permutation(len(pores_imgs))
 # test_ratio = 0.2
@@ -40,6 +45,8 @@ print ('----------------start to split data set----------------')
 #
 # x_test = [background_imgs[x] for x in b_test_indexes] + [pores_imgs[x] for x in p_test_indexes]
 # y_test = [0] * len(b_test_indexes) + [1] * len(p_test_indexes)
+
+# 利用sklearn自动分割
 x1 = background_imgs
 x2 = pores_imgs
 y1 = [0] * len(background_imgs)
@@ -68,36 +75,41 @@ print ('y_test size = %d' % len(y_test))
 print ('----------------end to split data set!----------------')
 print ('\n')
 
-# save y_train and y_test value to file
-print ('----------------writing y_train and y_test value----------------')
-y_train_file = file(os.path.join(VALUE_PATH, 'y_train.npy'), 'wb')
-y_test_file = file(os.path.join(VALUE_PATH, 'y_test.npy'), 'wb')
-np.save(y_train_file, y_train)
-np.save(y_test_file, y_test)
-y_train_file.close()
-y_test_file.close()
 
-# write train images
-print ('----------------writing train images----------------')
-for i in xrange(0, len(x_train)):
-    img = cv2.imread(x_train[i], 0)
-    if img is not None:
-        # print os.path.join(TRAIN_IMG_PATH, str(i)+'.jpg')
-        cv2.imwrite(os.path.join(TRAIN_IMG_PATH, str(i) + '.jpg'), img)
-        print ('%d/%d' % (i + 1, len(x_train)))
-        # cv2.imshow('img', img)
-        # cv2.waitKey(0)
-    else:
-        print ('img is empty')
-# write test images
-print ('----------------writing test images----------------')
-for i in xrange(0, len(x_test)):
-    img = cv2.imread(x_test[i], 0)
-    if img is not None:
-        # print os.path.join(TRAIN_IMG_PATH, str(i)+'.jpg')
-        cv2.imwrite(os.path.join(TEST_IMG_PATH, str(i) + '.jpg'), img)
-        print ('%d/%d' % (i + 1, len(x_test)))
-        # cv2.imshow('img', img)
-        # cv2.waitKey(0)
-    else:
-        print ('img is empty')
+###################################
+### save y_train and y_test value to file
+# print ('----------------writing y_train and y_test value----------------')
+# y_train_file = file(os.path.join(VALUE_PATH, 'y_train.npy'), 'wb')
+# y_test_file = file(os.path.join(VALUE_PATH, 'y_test.npy'), 'wb')
+# np.save(y_train_file, y_train)
+# np.save(y_test_file, y_test)
+# y_train_file.close()
+# y_test_file.close()
+
+###################################
+### write train images
+# print ('----------------writing train images----------------')
+# for i in xrange(0, len(x_train)):
+#     img = cv2.imread(x_train[i], 0)
+#     if img is not None:
+#         # print os.path.join(TRAIN_IMG_PATH, str(i)+'.jpg')
+#         cv2.imwrite(os.path.join(TRAIN_IMG_PATH, str(i) + '.jpg'), img)
+#         print ('%d/%d' % (i + 1, len(x_train)))
+#         # cv2.imshow('img', img)
+#         # cv2.waitKey(0)
+#     else:
+#         print ('img is empty')
+
+###################################
+### write test images
+# print ('----------------writing test images----------------')
+# for i in xrange(0, len(x_test)):
+#     img = cv2.imread(x_test[i], 0)
+#     if img is not None:
+#         # print os.path.join(TRAIN_IMG_PATH, str(i)+'.jpg')
+#         cv2.imwrite(os.path.join(TEST_IMG_PATH, str(i) + '.jpg'), img)
+#         print ('%d/%d' % (i + 1, len(x_test)))
+#         # cv2.imshow('img', img)
+#         # cv2.waitKey(0)
+#     else:
+#         print ('img is empty')
