@@ -5,9 +5,6 @@ from load_image import LoadImages
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
-import pandas as pd
-
-
 
 ret_back_imgs, ret_pore_imgs, ret_x_train, ret_y_train, ret_x_test, ret_y_test = LoadImages('all')
 
@@ -24,10 +21,34 @@ def GetImageStatistics(imgs, flag=None):
     mean = []
     median = []
     argmax = []
-    m00 = m10 = m01 = m20 = m11 = m02 = m30 = m21 = m12 = m03 = []  # 空间矩
-    mu20 = mu11 = mu02 = mu30 = mu21 = mu12 = mu03 = []  # 中心矩
-    nu20 = nu11 = nu02 = nu30 = nu21 = nu12 = nu03 = []  # 中心归一化矩
-    white_pixels = black_pixels = []
+    m00 = []
+    m10 = []
+    m01 = []
+    m20 = []
+    m11 = []
+    m02 = []
+    m30 = []
+    m21 = []
+    m12 = []
+    m03 = []  # 空间矩
+
+    mu20 = []
+    mu11 = []
+    mu02 = []
+    mu30 = []
+    mu21 = []
+    mu12 = []
+    mu03 = []  # 中心矩
+
+    nu20 = []
+    nu11 = []
+    nu02 = []
+    nu30 = []
+    nu21 = []
+    nu12 = []
+    nu03 = []  # 中心归一化矩
+    white_pixels = []
+    black_pixels = []
     min_contours = []
     for i in xrange(0, len(imgs)):
         img = cv2.imread(imgs[i], 0)
@@ -75,23 +96,6 @@ def GetImageStatistics(imgs, flag=None):
             # 统计中间区域像素个数
             white_pixels.append(np.sum(dst == 255))
             black_pixels.append(np.sum(dst == 0))
-
-            # 统计小的连通域个数
-            # contours = []
-            # contours = cv2.findContours(dst, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
-            # con_cnt = 0
-            # for con in contours:  # 遍历每一个轮廓
-            #     if len(con) < 8:
-            #         con_cnt += 1  # 碰到小的轮廓进行记录
-            # min_contours.append(con_cnt)  # 保存小轮廓的个数
-            # print contours
-
-            # 显示图像，继续进行或者退出
-            # cv2.imshow('dst', dst)
-            # if (cv2.waitKey(0) == 27):
-            #     break
-            # else:
-            #     continue
         else:
             print ('img is empty')
             return
@@ -155,5 +159,77 @@ def PlotImageStatistics():
     AnySubPlotImageStatistics((white_pixels1, black_pixels1, white_pixels2, black_pixels2), (2, 2))
 
 
-if __name__ == "__main__":
-    PlotImageStatistics()
+def JudgePore(background_imgs):
+    # background_imgs = os.listdir(BACKGROUND_IMG_PATH)
+    background_pore_count = [0] * len(background_imgs)
+    background_pore_coordinate = [[0] * 2 for i in range(len(background_imgs))]
+    count = 0
+    processing = 0
+    total = len(background_imgs)
+    for name in background_imgs:
+        processing += 1
+        print ('JugePore: ', processing, '/', total)
+        img_pore = cv2.imread(name, 0)
+        # ret1是当前的阈值
+        ret1_pore, img2_pore = cv2.threshold(img_pore, 0, 255, cv2.THRESH_OTSU)
+        hist_full_pore = cv2.calcHist([img_pore], [0], None, [256], [0, 256])
+
+        # find contours
+        img3_pore = img2_pore
+        # ret:连通域个数 labels:标注之后的图像
+        ret_pore, labels_pore = cv2.connectedComponents(img3_pore, 4)
+        number_pore = [0] * 20
+        # print labels_pore
+        # cv2.imshow('pore',img_pore)
+        # cv2.waitKey(0)
+        # ----------------------------------------------------------
+        cut_lenth = 2
+        cut_label = labels_pore[9 - cut_lenth:9 + cut_lenth, 9 - cut_lenth:9 + cut_lenth]
+        # print cut_label
+        # print labels_pore
+        cal_arry = np.zeros((cut_lenth * 2, cut_lenth * 2))
+        # print cal_arry
+
+        for i in range(len(labels_pore)):
+            for j in range(len(labels_pore[0])):
+                for k in range(len(cut_label)):
+                    for l in range(len(cut_label)):
+                        if (labels_pore[i][j] == cut_label[k][l]):
+                            cal_arry[k][l] += 1
+        # print cal_arry
+        # 输出统计的最小值--汗孔代表的连通域的数字的数量的最小值
+        min_value = 1000
+        min_value_coordinate = [0, 0]
+        for i in range(len(cut_label)):
+            for j in range(len(cut_label)):
+                if (cal_arry[i][j] < min_value):
+                    min_value = cal_arry[i][j]
+                    min_value_coordinate = [i, j]
+        threshold_value = 20
+        # 这个min value记录的是 汗孔代表的连通域的数字的数量
+        if (min_value < threshold_value):
+            background_pore_count[count] = 1
+            # 再统计坐标的位置
+            x_sum = 0
+            y_sum = 0
+            x_cdnt = 0
+            y_cdnt = 0
+            min_value_count = 0
+            min_value_in_img = cut_label[min_value_coordinate[0]][min_value_coordinate[1]]
+            # print "min value:%d"%min_value_in_img
+            for i in range(len(labels_pore)):
+                for j in range(len(labels_pore[0])):
+                    # print labels_pore[i][j]
+                    if labels_pore[i][j] == min_value_in_img:
+                        # print "in"
+                        x_sum += i
+                        y_sum += j
+                        min_value_count += 1
+            # print min_value_count
+            x_cdnt = x_sum / min_value_count
+            y_cdnt = y_sum / min_value_count
+            background_pore_coordinate[count] = [x_cdnt, y_cdnt]
+            # print pores_imgs_pore_coordinate[count]
+        # print min_value
+        count += 1
+    return background_pore_count, background_pore_coordinate
