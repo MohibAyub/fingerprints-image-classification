@@ -137,22 +137,21 @@ def PlotImageStatistics():
     back_std, back_mean, back_median, back_argmax = GetImageStatistics(ret_back_imgs)
     pore_std, pore_mean, pore_median, pore_argmax = GetImageStatistics(ret_pore_imgs)
     # AnySubPlotImageStatistics((back_std, back_mean, back_median, back_argmax, pore_std, pore_mean, pore_median, pore_argmax), (2, 4))
-    #
-    # m00, m10, m01, m20, m11, m02, m30, m21, m12, m03 = GetImageStatistics(ret_back_imgs, 'm')
-    # mu20, mu11, mu02, mu30, mu21, mu12, mu03 = GetImageStatistics(ret_back_imgs, 'mu')
-    # nu20, nu11, nu02, nu30, nu21, nu12, nu03 = GetImageStatistics(ret_back_imgs, 'nu')
-    #
-    # AnySubPlotImageStatistics((m00, m10, m01, m20, m11, m02, m30, m21, m12, m03), (2, 5))
-    # AnySubPlotImageStatistics((mu20, mu11, mu02, mu30, mu21, mu12, mu03), (1, 7))
-    # AnySubPlotImageStatistics((nu20, nu11, nu02, nu30, nu21, nu12, nu03), (1, 7))
-    #
-    # m00, m10, m01, m20, m11, m02, m30, m21, m12, m03 = GetImageStatistics(ret_pore_imgs, 'm')
-    # mu20, mu11, mu02, mu30, mu21, mu12, mu03 = GetImageStatistics(ret_pore_imgs, 'mu')
-    # nu20, nu11, nu02, nu30, nu21, nu12, nu03 = GetImageStatistics(ret_pore_imgs, 'nu')
-    #
-    # AnySubPlotImageStatistics((m00, m10, m01, m20, m11, m02, m30, m21, m12, m03), (2, 5))
-    # AnySubPlotImageStatistics((mu20, mu11, mu02, mu30, mu21, mu12, mu03), (1, 7))
-    # AnySubPlotImageStatistics((nu20, nu11, nu02, nu30, nu21, nu12, nu03), (1, 7))
+
+    b_m00, b_m10, b_m01, b_m20, b_m11, b_m02, b_m30, b_m21, b_m12, b_m03 = GetImageStatistics(ret_back_imgs, 'm')
+    b_mu20, b_mu11, b_mu02, b_mu30, b_mu21, b_mu12, b_mu03 = GetImageStatistics(ret_back_imgs, 'mu')
+    b_nu20, b_nu11, b_nu02, b_nu30, b_nu21, b_nu12, b_nu03 = GetImageStatistics(ret_back_imgs, 'nu')
+
+    m00, m10, m01, m20, m11, m02, m30, m21, m12, m03 = GetImageStatistics(ret_pore_imgs, 'm')
+    mu20, mu11, mu02, mu30, mu21, mu12, mu03 = GetImageStatistics(ret_pore_imgs, 'mu')
+    nu20, nu11, nu02, nu30, nu21, nu12, nu03 = GetImageStatistics(ret_pore_imgs, 'nu')
+
+    AnySubPlotImageStatistics((b_m00, b_m10, b_m01, b_m20, b_m11, m00, m10, m01, m20, m11), (2, 5))
+    AnySubPlotImageStatistics((b_m02, b_m30, b_m21, b_m12, b_m03, m02, m30, m21, m12, m03), (2, 5))
+    AnySubPlotImageStatistics(
+        (b_mu20, b_mu11, b_mu02, b_mu30, b_mu21, b_mu12, b_mu03, mu20, mu11, mu02, mu30, mu21, mu12, mu03), (2, 7))
+    AnySubPlotImageStatistics(
+        (b_nu20, b_nu11, b_nu02, b_nu30, b_nu21, b_nu12, b_nu03, nu20, nu11, nu02, nu30, nu21, nu12, nu03), (2, 7))
 
     white_pixels1, black_pixels1 = GetImageStatistics(ret_back_imgs, 'pixel')
     white_pixels2, black_pixels2 = GetImageStatistics(ret_pore_imgs, 'pixel')
@@ -162,13 +161,16 @@ def PlotImageStatistics():
 def JudgePore(background_imgs):
     # background_imgs = os.listdir(BACKGROUND_IMG_PATH)
     background_pore_count = [0] * len(background_imgs)
-    background_pore_coordinate = [[0] * 2 for i in range(len(background_imgs))]
+    x = [0] * len(background_imgs)
+    y = [0] * len(background_imgs)
+    z = [0] * len(background_imgs)
+    # background_pore_coordinate = [[0] * 2 for i in range(len(background_imgs))]
     count = 0
     processing = 0
     total = len(background_imgs)
     for name in background_imgs:
         processing += 1
-        print ('JugePore: ', processing, '/', total)
+        print ('JugePore: %4d/%4d' % (processing, total))
         img_pore = cv2.imread(name, 0)
         # ret1是当前的阈值
         ret1_pore, img2_pore = cv2.threshold(img_pore, 0, 255, cv2.THRESH_OTSU)
@@ -228,8 +230,23 @@ def JudgePore(background_imgs):
             # print min_value_count
             x_cdnt = x_sum / min_value_count
             y_cdnt = y_sum / min_value_count
-            background_pore_coordinate[count] = [x_cdnt, y_cdnt]
+            # background_pore_coordinate[count] = [x_cdnt, y_cdnt]
+            x[count] = x_cdnt
+            y[count] = y_cdnt
+            z[count] = x_cdnt ** 2 + y_cdnt ** 2
             # print pores_imgs_pore_coordinate[count]
         # print min_value
         count += 1
-    return background_pore_count, background_pore_coordinate
+
+    return background_pore_count, x, y, z
+
+
+#################################
+### test
+if __name__ == '__main__':
+    # PlotImageStatistics()
+    # a1, b1, c1 = JudgePore(ret_back_imgs)
+    # a2, b2, c2 = JudgePore(ret_pore_imgs)
+    # AnySubPlotImageStatistics((a1, a2), (1, 2))
+
+    JudgePore(ret_x_test)
