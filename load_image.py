@@ -6,7 +6,6 @@ import os
 from sklearn.model_selection import train_test_split
 
 
-
 #######################################
 ### @input: 'back' 加载背景图像
 ###         'pore' 加载汗孔图像
@@ -85,3 +84,16 @@ def LoadImages(select):
     else:
         print ('wrong input param!')
         return
+
+
+def LoadPredictImagesFromPath(img_path_name):
+    imgs = os.listdir(img_path_name)
+    predict_imgs = []
+    # no images
+    if imgs == []:
+        print "please copy predict images to predict_img directory!"
+        exit(-1)
+
+    for img in imgs:
+        predict_imgs.append(os.path.join(img_path_name, img))
+    return predict_imgs
