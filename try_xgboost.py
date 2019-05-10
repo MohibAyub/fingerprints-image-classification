@@ -9,6 +9,7 @@ from feature_extract import JudgePore
 from load_image import LoadImages
 from sklearn import metrics
 import matplotlib.pyplot as plt
+from sklearn.preprocessing import scale
 
 ###################################
 ### 读取图片
@@ -39,6 +40,11 @@ tr_labels = np.array(ret_y_train)
 test = np.array(
     [te_median, te_std, te_pore, te_mean, te_m00, te_m02, te_pore_coor1, te_pore_coor2, te_pore_coor3]).transpose()
 te_labels = np.array(ret_y_test)
+
+###################################
+### 归一化
+train = scale(train)
+test = scale(test)
 
 ###################################
 ### 进行xgb training
@@ -82,7 +88,7 @@ watchlist = [(xgtrain, 'train'), (xgval, 'val')]
 model = xgb.train(plst, xgtrain, num_rounds, watchlist, early_stopping_rounds=100)
 y_pred = model.predict(xgtest, ntree_limit=model.best_iteration)
 
-model.save_model('./model/xgb.model') # 用于存储训练出的模型
+model.save_model('./model/xgb.model')  # 用于存储训练出的模型
 # # 将预测结果写入文件，方式有很多，自己顺手能实现即可
 # np.savetxt('submission_xgb_MultiSoftmax.csv', np.c_[range(1, len(test) + 1), preds],
 #            delimiter=',', header='ImageId,Label', comments='', fmt='%d')
